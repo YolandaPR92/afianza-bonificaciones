@@ -5,7 +5,7 @@ export default function HistorialModal({ historyFor, onClose }: { historyFor: an
   return (
     <div className="fixed inset-0 bg-[rgba(16,32,58,.45)] flex items-center justify-center z-50" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="bg-white rounded-xl w-[520px] max-w-[92vw] p-7 shadow-2xl max-h-[86vh] overflow-auto">
-        <h3 className="font-serif text-lg mb-4">Histórico de evidencias</h3>
+        <h3 className="font-serif text-lg text-steel mb-4">Histórico de evidencias</h3>
         {historyFor.length === 0 && <div className="text-muted text-sm">Sin evidencias.</div>}
         {historyFor.map((e) => (
           <div key={e.id} className="border-t border-dashed border-line pt-3 mt-3 first:border-0 first:mt-0 first:pt-0 text-[12.5px]">

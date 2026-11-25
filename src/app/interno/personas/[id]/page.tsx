@@ -73,7 +73,7 @@ export default function PersonaDetallePage({ params }: { params: { id: string } 
 
       <div className="panel mt-3">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-          <h2 className="font-serif text-2xl">{persona.nombre}</h2>
+          <h2 className="font-serif text-2xl text-steel">{persona.nombre}</h2>
           {persona.estado === "Baja" ? <span className="badge badge-bad">Baja</span> : <span className="badge badge-ok">Activo</span>}
         </div>
         <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
@@ -106,7 +106,7 @@ export default function PersonaDetallePage({ params }: { params: { id: string } 
         </div>
       </div>
 
-      <h3 className="font-serif text-lg mt-6 mb-3">Proyectos vinculados</h3>
+      <h3 className="font-serif text-lg text-steel mt-6 mb-3">Proyectos vinculados</h3>
       {vinculos.length === 0 && <div className="text-muted text-sm py-6 text-center">Sin proyectos vinculados.</div>}
       {vinculos.map((v) => {
         const mens = mensualidades

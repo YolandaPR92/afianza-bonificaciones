@@ -305,7 +305,7 @@ export default function InternoPage() {
           <button
             key={id}
             className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${
-              tab === id ? "border-ink text-ink" : "border-transparent text-muted hover:text-ink"
+              tab === id ? "border-accent text-accent" : "border-transparent text-muted hover:text-ink"
             }`}
             onClick={() => setTab(id)}
           >
@@ -322,10 +322,10 @@ export default function InternoPage() {
         open={showMgmt}
         onToggle={(e: any) => { if (e.target === e.currentTarget) setShowMgmt(e.target.open); }}
       >
-        <summary className="px-4 py-3 font-semibold text-[13.5px] cursor-pointer bg-paper rounded-lg">Gestión de datos (altas)</summary>
+        <summary className="px-4 py-3 font-semibold text-sm cursor-pointer bg-steel text-white rounded-lg">Gestión de datos (altas)</summary>
         <div className="p-4 space-y-3">
           <details className="border border-line rounded-lg">
-            <summary className="px-4 py-2.5 font-semibold text-sm cursor-pointer bg-paper rounded-lg">Clientes</summary>
+            <summary className="px-4 py-2.5 font-semibold text-sm cursor-pointer bg-paper rounded-lg border-l-4 border-accent text-steel">Clientes</summary>
             <div className="p-4">
               <MiniForm
                 label="Nuevo cliente"
@@ -339,7 +339,7 @@ export default function InternoPage() {
           </details>
 
           <details className="border border-line rounded-lg">
-            <summary className="px-4 py-2.5 font-semibold text-sm cursor-pointer bg-paper rounded-lg">Personal y proyectos</summary>
+            <summary className="px-4 py-2.5 font-semibold text-sm cursor-pointer bg-paper rounded-lg border-l-4 border-accent text-steel">Personal y proyectos</summary>
             <div className="p-4 space-y-4">
               <label className="flex flex-col gap-1 text-sm text-muted max-w-xs">
                 Cliente
@@ -409,7 +409,7 @@ export default function InternoPage() {
           </details>
 
           <details className="border border-line rounded-lg">
-            <summary className="px-4 py-2.5 font-semibold text-sm cursor-pointer bg-paper rounded-lg">Mensualidades</summary>
+            <summary className="px-4 py-2.5 font-semibold text-sm cursor-pointer bg-paper rounded-lg border-l-4 border-accent text-steel">Mensualidades</summary>
             <div className="p-4">
               <div className="bg-paper border border-line rounded-md p-3.5 flex items-end gap-3 flex-wrap">
                 <div className="flex-[2] min-w-[220px] text-sm">
@@ -425,7 +425,7 @@ export default function InternoPage() {
           </details>
 
           <details className="border border-line rounded-lg">
-            <summary className="px-4 py-2.5 font-semibold text-sm cursor-pointer bg-paper rounded-lg">Usuarios y permisos</summary>
+            <summary className="px-4 py-2.5 font-semibold text-sm cursor-pointer bg-paper rounded-lg border-l-4 border-accent text-steel">Usuarios y permisos</summary>
             <div className="p-4 space-y-4">
               <div className="bg-paper border border-line rounded-md p-3.5">
                 <div className="text-sm mb-2"><b className="text-ink">Nuevo usuario</b></div>
@@ -452,7 +452,7 @@ export default function InternoPage() {
         open={showRegistry}
         onToggle={(e: any) => { if (e.target === e.currentTarget) setShowRegistry(e.target.open); }}
       >
-        <summary className="px-4 py-3 font-semibold text-[13.5px] cursor-pointer bg-paper rounded-lg">Registros existentes (editar / dar de baja)</summary>
+        <summary className="px-4 py-3 font-semibold text-sm cursor-pointer bg-steel text-white rounded-lg">Registros existentes (editar / dar de baja)</summary>
         <div className="p-4">
           <div className="text-xs uppercase tracking-wide text-muted mb-2">Clientes</div>
           <table className="table-review mb-5">
@@ -517,7 +517,7 @@ export default function InternoPage() {
                     <EditRowPersona key={p.id} p={p} onSave={(d) => savePersona(p.id, d)} onCancel={() => setEditing(null)} />
                   ) : (
                     <tr key={p.id}>
-                      <td><Link href={`/interno/personas/${p.id}`} className="underline text-ink">{p.nombre}</Link></td>
+                      <td><Link href={`/interno/personas/${p.id}`} className="underline text-accent">{p.nombre}</Link></td>
                       <td className="font-mono text-xs">{p.idUsuario || "—"}</td>
                       <td>{p.puesto || "—"}</td>
                       <td>{p.titulacion || "—"}</td>
@@ -633,7 +633,7 @@ export default function InternoPage() {
       <>
       {/* FILTROS + TABLA DE REVISIÓN */}
       <div className="panel">
-        <h3 className="font-serif text-base mb-3.5">Evidencias — todas las mensualidades</h3>
+        <h3 className="font-serif text-base text-steel mb-3.5">Evidencias — todas las mensualidades</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-2">
           <label className="label">
             Cliente
@@ -729,7 +729,7 @@ export default function InternoPage() {
       {reviewId && evidenciaActual && (
         <div className="fixed inset-0 bg-[rgba(16,32,58,.45)] flex items-center justify-center z-50" onClick={(e) => e.target === e.currentTarget && setReviewId(null)}>
           <div className="bg-white rounded-xl w-[500px] max-w-[92vw] p-7 shadow-2xl max-h-[88vh] overflow-auto">
-            <h3 className="font-serif text-lg mb-1">Revisar evidencia</h3>
+            <h3 className="font-serif text-lg text-steel mb-1">Revisar evidencia</h3>
             <div className="text-sm text-muted mb-3">
               {mensualidades.find((m) => m.id === reviewId)?.vinculo.persona.nombre} — v{evidenciaActual.version}
             </div>

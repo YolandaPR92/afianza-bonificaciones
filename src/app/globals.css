@@ -10,10 +10,10 @@
     @apply bg-ink text-white;
   }
   .btn-primary {
-    @apply bg-ink text-white;
+    @apply bg-accent border-accent text-white;
   }
   .btn-primary:hover {
-    @apply bg-steel;
+    @apply bg-ink border-ink;
   }
   .btn-ghost {
     @apply border-line text-muted;
@@ -41,7 +41,7 @@
     @apply w-full border-collapse text-sm;
   }
   .table-review th {
-    @apply text-left text-[10.5px] uppercase tracking-wide text-muted px-3 py-2 border-b-2 border-ink;
+    @apply text-left text-[10.5px] uppercase tracking-wide text-muted px-3 py-2 border-b-2 border-steel;
   }
   .table-review td {
     @apply px-3 py-2.5 border-b border-[#EEF0F2];
