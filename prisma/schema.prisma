@@ -1,0 +1,217 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Cliente {
+  id                Int        @id @default(autoincrement())
+  nombre            String
+  cif               String?
+  consultorAsignado String?
+  estado            String     @default("Activo")
+  createdAt         DateTime   @default(now())
+  personas          Persona[]
+  proyectos         Proyecto[]
+  usuarios          Usuario[]
+  ejercicios        Ejercicio[]
+}
+
+model Usuario {
+  id                Int      @id @default(autoincrement())
+  email             String   @unique
+  passwordHash      String
+  rol               String   // admin_consultora | tecnico | admin_cliente | investigador
+  clienteId         Int?
+  cliente           Cliente? @relation(fields: [clienteId], references: [id])
+  personaId         Int?     @unique
+  persona           Persona? @relation(fields: [personaId], references: [id])
+  autorizadoEdicion Boolean  @default(false)
+  createdAt         DateTime @default(now())
+}
+
+model Persona {
+  id                        Int       @id @default(autoincrement())
+  clienteId                 Int
+  cliente                   Cliente   @relation(fields: [clienteId], references: [id])
+  nombre                    String
+  idUsuario                 String?
+  puesto                    String?
+  departamento              String?
+  titulacion                String?
+  fechaIncorporacion        DateTime?
+  fechaAltaBonificacion     DateTime?
+  fechaBajaBonificacion     DateTime?
+  estado                    String    @default("Activo")
+  createdAt                 DateTime  @default(now())
+
+  usuariosHerramientas      String?   // texto o JSON: usuarios de GitHub/Jira, etc.
+  usuarioVinculado          Boolean   @default(false) // ¿se aportó la captura que liga usuario↔nombre? (motivo M1)
+  queDebeAportar            String?   // texto libre de la consultora, visible a admin_cliente y al investigador
+
+  usuario                   Usuario?
+  vinculos                  Vinculo[]
+}
+
+model Proyecto {
+  id                 Int             @id @default(autoincrement())
+  clienteId          Int
+  cliente            Cliente         @relation(fields: [clienteId], references: [id])
+  nombre             String
+  codigo             String?
+  descripcionBreve   String?
+  descripcionTecnica String?
+  tecnologias        String?
+  fechaInicio        DateTime?
+  fechaFin           DateTime?
+  estado             String          @default("Activo")
+  createdAt          DateTime        @default(now())
+  vinculos           Vinculo[]
+  lineas             LineaProyecto[]
+}
+
+/// Subproyecto/línea de un Proyecto global (sección 5): en ORBITANT, por ejemplo, 5
+/// fichas de proyecto reales (2 de Afianza, 3 de Holafly) se agrupan en 2 Proyecto
+/// globales con sus líneas. Cada archivo de evidencia se etiqueta con su línea.
+model LineaProyecto {
+  id         Int      @id @default(autoincrement())
+  proyectoId Int
+  proyecto   Proyecto @relation(fields: [proyectoId], references: [id])
+  nombre     String
+  createdAt  DateTime @default(now())
+  archivos   Archivo[]
+}
+
+/// pctNoIDi no se guarda como campo propio en Prisma: en Postgres es una columna
+/// GENERATED ALWAYS AS (despliegues + soporte + gestión) STORED (ver db.ts), para que
+/// no pueda desincronizarse de los tres porcentajes. La coordinación técnica no cuenta
+/// como no-I+D+i (se considera I+D+i), confirmado con la usuaria.
+model Vinculo {
+  id                 Int           @id @default(autoincrement())
+  personaId          Int
+  persona            Persona       @relation(fields: [personaId], references: [id])
+  proyectoId         Int
+  proyecto           Proyecto      @relation(fields: [proyectoId], references: [id])
+  rol                String?
+  dedicacion         Int?
+  fechaInicio        DateTime?
+  fechaFin           DateTime?
+  activo             Boolean       @default(true)
+  createdAt          DateTime      @default(now())
+  mensualidades      Mensualidad[]
+
+  pctCoordinacion    Int?
+  pctDespliegues     Int?
+  pctSoporte         Int?
+  pctGestion         Int?
+  observacionesFicha String?
+}
+
+/// Ejercicio fiscal configurable (sección 3): puede ser no natural (p. ej. julio-junio).
+/// fechaLimiteIMV (fin + 6 meses) y requiereIMV (10+ personas bonificadas 3+ meses) son
+/// derivados y se calculan en la consulta, no se guardan, para que nunca queden obsoletos.
+model Ejercicio {
+  id            Int           @id @default(autoincrement())
+  clienteId     Int
+  cliente       Cliente       @relation(fields: [clienteId], references: [id])
+  nombre        String
+  fechaInicio   DateTime
+  fechaFin      DateTime
+  estado        String        @default("abierto") // abierto | cerrado
+  createdAt     DateTime      @default(now())
+  mensualidades Mensualidad[]
+}
+
+model Mensualidad {
+  id             Int            @id @default(autoincrement())
+  vinculoId      Int
+  vinculo        Vinculo        @relation(fields: [vinculoId], references: [id])
+  ejercicioId    Int?
+  ejercicio      Ejercicio?     @relation(fields: [ejercicioId], references: [id])
+  mes            Int
+  anio           Int
+  estado         String         @default("pendiente") // pendiente | en_revision | validada | rechazada
+  createdAt      DateTime       @default(now())
+  evidencias     Evidencia[]
+  notificaciones Notificacion[]
+
+  @@unique([vinculoId, mes, anio])
+}
+
+model Evidencia {
+  id                  Int       @id @default(autoincrement())
+  mensualidadId       Int
+  mensualidad         Mensualidad @relation(fields: [mensualidadId], references: [id])
+  version             Int
+  subidoPor           String?
+  fechaSubida         DateTime  @default(now())
+  comentarioCliente   String?
+  checkPeriodo        Boolean   @default(false)
+  checkNombre         Boolean   @default(false)
+  checkTecnico        Boolean   @default(false)
+  estado              String    @default("en_revision") // en_revision | validada | rechazada
+  revisadoPor         String?
+  fechaRevision       DateTime?
+  comentarioRevision  String?
+  archivos            Archivo[]
+}
+
+/// Revisión por archivo (sección 2.2): vive en la propia fila de Archivo porque ya
+/// tiene fila propia por adjunto, en vez de una tabla RevisionArchivo separada.
+model Archivo {
+  id              Int            @id @default(autoincrement())
+  evidenciaId     Int
+  evidencia       Evidencia      @relation(fields: [evidenciaId], references: [id])
+  nombre          String
+  ruta            String
+  tipo            String?        // MIME type del adjunto subido
+  tamano          Int?
+  createdAt       DateTime       @default(now())
+
+  resultado       String?        // valida | debil | no_valida | null (sin revisar)
+  motivoCodigo    String?
+  motivoRechazo   MotivoRechazo? @relation(fields: [motivoCodigo], references: [codigo])
+  comentarioCliente String?      // obligatorio si resultado es no_valida o debil
+  notaInterna     String?        // solo la ve la consultora
+  tipoContenido   String?        // pr | commit | ticket | documento | perfil | otro (distinto del MIME "tipo")
+  lineaProyectoId Int?
+  lineaProyecto   LineaProyecto? @relation(fields: [lineaProyectoId], references: [id])
+  hashImagen      String?        // para detectar duplicados (sección 7)
+  revisadoPor     String?
+  revisadoEn      DateTime?
+}
+
+/// Catálogo editable por admin_consultora (sección 2.1). Carga inicial desde
+/// datos_orbitant/Motivos.csv, sembrada en db.ts junto al esquema.
+model MotivoRechazo {
+  codigo       String    @id
+  motivo       String
+  comoSubsanar String?
+  activo       Boolean   @default(true)
+  orden        Int       @default(0)
+  archivos     Archivo[]
+}
+
+model EventoAuditoria {
+  id        Int      @id @default(autoincrement())
+  entidad   String
+  entidadId Int
+  accion    String
+  usuario   String?
+  detalle   String?
+  fecha     DateTime @default(now())
+}
+
+model Notificacion {
+  id            Int          @id @default(autoincrement())
+  mensualidadId Int?
+  mensualidad   Mensualidad? @relation(fields: [mensualidadId], references: [id])
+  destinatario  String?
+  tipo          String?
+  mensaje       String?
+  leida         Boolean      @default(false)
+  fecha         DateTime     @default(now())
+}

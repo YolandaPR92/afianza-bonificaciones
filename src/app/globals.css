@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .btn {
+    @apply border border-ink bg-white text-ink px-5 py-2.5 rounded-md text-base font-semibold transition-colors;
+  }
+  .btn:hover {
+    @apply bg-ink text-white;
+  }
+  .btn-primary {
+    @apply bg-ink text-white;
+  }
+  .btn-primary:hover {
+    @apply bg-steel;
+  }
+  .btn-ghost {
+    @apply border-line text-muted;
+  }
+  .btn:disabled {
+    @apply opacity-40 cursor-not-allowed;
+  }
+  .panel {
+    @apply bg-white border border-line rounded-lg p-6 mb-5;
+  }
+  .field {
+    @apply border border-line rounded-md px-3.5 py-2.5 text-base w-full;
+  }
+  .label {
+    @apply text-sm text-muted mb-1 block;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide border;
+  }
+  .badge-ok { @apply text-ok bg-okbg border-[#bfe2d3]; }
+  .badge-bad { @apply text-bad bg-badbg border-[#ecc7bf]; }
+  .badge-pend { @apply text-pend bg-pendbg border-[#f0dbb0]; }
+  .badge-rev { @apply text-rev bg-revbg border-[#c6d5ef]; }
+  .table-review {
+    @apply w-full border-collapse text-sm;
+  }
+  .table-review th {
+    @apply text-left text-[10.5px] uppercase tracking-wide text-muted px-3 py-2 border-b-2 border-ink;
+  }
+  .table-review td {
+    @apply px-3 py-2.5 border-b border-[#EEF0F2];
+  }
+  .table-review tr:hover td {
+    @apply bg-paper;
+  }
+}
