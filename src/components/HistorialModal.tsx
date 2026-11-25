@@ -8,7 +8,7 @@ export default function HistorialModal({ historyFor, onClose }: { historyFor: an
         <h3 className="font-serif text-lg text-steel mb-4">Histórico de evidencias</h3>
         {historyFor.length === 0 && <div className="text-muted text-sm">Sin evidencias.</div>}
         {historyFor.map((e) => (
-          <div key={e.id} className="border-t border-dashed border-line pt-3 mt-3 first:border-0 first:mt-0 first:pt-0 text-[12.5px]">
+          <div key={e.id} className="border-t border-dashed border-line pt-3 mt-3 first:border-0 first:mt-0 first:pt-0 text-sm">
             <b>Evidencia v{e.version}</b>
             <div className="mt-1 space-y-1.5">
               {e.archivos.map((a: any) => (

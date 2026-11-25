@@ -37,7 +37,7 @@ export default function LoginPage() {
           </div>
           <div>
             <div className="font-serif font-semibold text-ink text-lg">
-              Afianza <span className="text-[10px] bg-pendbg text-pend border border-[#f0dbb0] rounded px-1.5 py-0.5 uppercase font-bold align-middle">Alfa</span>
+              Afianza <span className="text-xs bg-pendbg text-pend border border-[#f0dbb0] rounded px-1.5 py-0.5 uppercase font-bold align-middle">Alfa</span>
             </div>
             <div className="text-xs text-muted uppercase tracking-wide">Bonificaciones Sociales PI — Gestión de evidencias</div>
           </div>

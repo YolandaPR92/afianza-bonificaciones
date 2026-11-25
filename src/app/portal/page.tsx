@@ -115,7 +115,7 @@ export default function PortalPage() {
   return (
     <div className="max-w-6xl mx-auto px-7 pb-16">
       <TopBar email={session.email} subtitle="Portal Cliente" />
-      <div className="bg-revbg border border-[#c6d5ef] rounded-md px-4 py-2.5 text-[12.5px] text-steel my-4">
+      <div className="bg-revbg border border-[#c6d5ef] rounded-md px-4 py-2.5 text-sm text-steel my-4">
         Versión alfa — subida de archivos real, sesión real por usuario. Datos de prueba ficticios.
       </div>
 
@@ -123,6 +123,7 @@ export default function PortalPage() {
 
       {session.rol === "admin_cliente" && (
         <div className="panel">
+          <p className="text-sm text-muted mb-3.5">Busca o filtra para elegir qué investigador ver abajo; selecciónalo en el desplegable "Investigador" para consultar o subir sus evidencias.</p>
           <div className="flex gap-2 flex-wrap mb-3.5">
             <input
               className="field w-auto"
@@ -178,13 +179,19 @@ export default function PortalPage() {
         {personaActual && (
           <>
             <h2 className="font-serif text-2xl mb-1">{personaActual.nombre}</h2>
-            <div className="text-[12.5px] text-muted mb-4">{personaActual.puesto}</div>
+            <div className="text-sm text-muted mb-4">{personaActual.puesto}</div>
             {personaActual.queDebeAportar && (
-              <div className="bg-pendbg border border-[#f0dbb0] rounded-md px-3.5 py-2.5 mb-4 text-[12.5px] leading-relaxed">
+              <div className="bg-pendbg border border-[#f0dbb0] rounded-md px-3.5 py-2.5 mb-4 text-sm leading-relaxed">
                 <b className="text-pend">Qué debe aportar:</b> {personaActual.queDebeAportar}
               </div>
             )}
           </>
+        )}
+
+        {misVinculos.length > 0 && (
+          <p className="text-sm text-muted mb-4">
+            Por cada proyecto verás un mes a mes: sube un archivo que demuestre tu trabajo técnico (código, documentación, capturas…) cuando el mes esté "Pendiente de aportar" o "Rechazada", y consulta el estado de los que ya has enviado.
+          </p>
         )}
 
         {misVinculos.length === 0 && <div className="text-muted text-sm py-6 text-center">Sin proyectos vinculados.</div>}
@@ -198,20 +205,20 @@ export default function PortalPage() {
               <div className="bg-paper px-4 py-3 border-b border-line flex justify-between items-center">
                 <div>
                   <span className="font-bold text-sm">{v.proyecto.nombre}</span>{" "}
-                  <span className="text-[11px] text-muted font-mono">· {v.proyecto.codigo}</span>
+                  <span className="text-xs text-muted font-mono">· {v.proyecto.codigo}</span>
                 </div>
-                <span className="text-[11.5px] text-muted">Dedicación {v.dedicacion}%</span>
+                <span className="text-sm text-muted">Dedicación {v.dedicacion}%</span>
               </div>
               {mens.length === 0 && <div className="px-4 py-3 text-sm text-muted">Sin mensualidades generadas todavía.</div>}
               {mens.map((m: any) => {
                 const canUpload = m.estado === "pendiente" || m.estado === "rechazada";
                 return (
-                  <div key={m.id} className="flex items-center justify-between px-4 py-2.5 border-b last:border-0 border-[#EFF1F3] text-sm">
-                    <div className="font-semibold w-36">
+                  <div key={m.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b last:border-0 border-[#EFF1F3] text-sm">
+                    <div className="font-semibold w-full sm:w-36">
                       {MESES[m.mes - 1]} {m.anio}
                     </div>
                     <Badge estado={m.estado} />
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-1.5 flex-wrap">
                       {m.estado === "rechazada" && (
                         <button className="btn btn-ghost" onClick={() => openHistory(m.id)}>Ver motivo</button>
                       )}
@@ -238,7 +245,7 @@ export default function PortalPage() {
         <div className="fixed inset-0 bg-[rgba(16,32,58,.45)] flex items-center justify-center z-50" onClick={(e) => e.target === e.currentTarget && setUploadFor(null)}>
           <div className="bg-white rounded-xl w-[480px] max-w-[92vw] p-7 shadow-2xl">
             <h3 className="font-serif text-lg mb-1">Subir evidencia</h3>
-            <div className="bg-pendbg border border-[#f0dbb0] rounded-md px-3.5 py-2.5 my-3 text-[12.5px] leading-relaxed">
+            <div className="bg-pendbg border border-[#f0dbb0] rounded-md px-3.5 py-2.5 my-3 text-sm leading-relaxed">
               <b className="text-pend">Para que sea válida debe verse:</b>
               <br />
               1. El mes y año del periodo &nbsp; 2. El nombre completo &nbsp; 3. Contenido técnico realizado
@@ -266,7 +273,7 @@ export default function PortalPage() {
             <h3 className="font-serif text-lg mb-4">Histórico de evidencias</h3>
             {historyFor.length === 0 && <div className="text-muted text-sm">Sin evidencias.</div>}
             {historyFor.map((e) => (
-              <div key={e.id} className="border-t border-dashed border-line pt-3 mt-3 first:border-0 first:mt-0 first:pt-0 text-[12.5px]">
+              <div key={e.id} className="border-t border-dashed border-line pt-3 mt-3 first:border-0 first:mt-0 first:pt-0 text-sm">
                 <b>Evidencia v{e.version}</b>
                 <div className="mt-1 space-y-1.5">
                   {e.archivos.map((a: any) => (
@@ -312,19 +319,19 @@ function EditPersonaForm({ persona, onSave, onCancel }: { persona: any; onSave: 
   return (
     <div className="bg-paper border border-line rounded-md p-3.5 mt-3">
       <div className="flex gap-2.5 flex-wrap items-end">
-        <label className="flex flex-col gap-1 text-[11.5px] text-muted flex-1 min-w-[160px]">
+        <label className="flex flex-col gap-1 text-sm text-muted flex-1 min-w-[160px]">
           Nombre completo
           <input className="field" value={nombre} onChange={(e) => setNombre(e.target.value)} />
         </label>
-        <label className="flex flex-col gap-1 text-[11.5px] text-muted flex-1 min-w-[140px]">
+        <label className="flex flex-col gap-1 text-sm text-muted flex-1 min-w-[140px]">
           Puesto
           <input className="field" value={puesto} onChange={(e) => setPuesto(e.target.value)} />
         </label>
-        <label className="flex flex-col gap-1 text-[11.5px] text-muted flex-1 min-w-[140px]">
+        <label className="flex flex-col gap-1 text-sm text-muted flex-1 min-w-[140px]">
           Departamento
           <input className="field" value={departamento} onChange={(e) => setDepartamento(e.target.value)} />
         </label>
-        <label className="flex flex-col gap-1 text-[11.5px] text-muted flex-1 min-w-[160px]">
+        <label className="flex flex-col gap-1 text-sm text-muted flex-1 min-w-[160px]">
           ID de usuario
           <input className="field" value={idUsuario} onChange={(e) => setIdUsuario(e.target.value)} />
         </label>
@@ -374,19 +381,19 @@ function NuevaPersonaForm({ onSubmit }: { onSubmit: (data: any) => Promise<void>
     <div className="panel">
       <h3 className="font-serif text-base mb-3.5">Añadir investigador</h3>
       <div className="flex gap-2.5 flex-wrap items-end">
-        <label className="flex flex-col gap-1 text-[11.5px] text-muted flex-1 min-w-[160px]">
+        <label className="flex flex-col gap-1 text-sm text-muted flex-1 min-w-[160px]">
           Nombre completo
           <input className="field" value={nombre} onChange={(e) => setNombre(e.target.value)} disabled={submitting} />
         </label>
-        <label className="flex flex-col gap-1 text-[11.5px] text-muted flex-1 min-w-[140px]">
+        <label className="flex flex-col gap-1 text-sm text-muted flex-1 min-w-[140px]">
           Puesto
           <input className="field" value={puesto} onChange={(e) => setPuesto(e.target.value)} disabled={submitting} />
         </label>
-        <label className="flex flex-col gap-1 text-[11.5px] text-muted flex-1 min-w-[140px]">
+        <label className="flex flex-col gap-1 text-sm text-muted flex-1 min-w-[140px]">
           Departamento
           <input className="field" value={departamento} onChange={(e) => setDepartamento(e.target.value)} disabled={submitting} />
         </label>
-        <label className="flex flex-col gap-1 text-[11.5px] text-muted flex-1 min-w-[160px]">
+        <label className="flex flex-col gap-1 text-sm text-muted flex-1 min-w-[160px]">
           ID de usuario
           <input
             className="field"
@@ -400,7 +407,7 @@ function NuevaPersonaForm({ onSubmit }: { onSubmit: (data: any) => Promise<void>
           <button className="btn btn-primary" onClick={submit} disabled={submitting}>
             {submitting ? "Guardando…" : "Añadir investigador"}
           </button>
-          {saved && <span className="text-[11.5px] text-ok font-semibold">✓ Guardado</span>}
+          {saved && <span className="text-sm text-ok font-semibold">✓ Guardado</span>}
         </div>
       </div>
     </div>

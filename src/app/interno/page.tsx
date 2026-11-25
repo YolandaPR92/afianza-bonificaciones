@@ -10,6 +10,12 @@ const TABS: [string, string][] = [
   ["maestros", "Datos maestros"],
   ["evidencias", "Revisar evidencias"],
 ];
+const MAESTROS_SUBTABS: [string, string][] = [
+  ["clientes", "Clientes"],
+  ["personal", "Personal, proyectos y vínculos"],
+  ["mensualidades", "Mensualidades"],
+  ["usuarios", "Usuarios y permisos"],
+];
 
 function Badge({ estado }: { estado: string }) {
   const map: Record<string, [string, string]> = {
@@ -36,13 +42,11 @@ export default function InternoPage() {
   const [comentario, setComentario] = useState("");
   const [editing, setEditing] = useState<{ type: string; id: number } | null>(null);
   const [tab, setTab] = useState<string>("maestros");
-  const [showMgmt, setShowMgmt] = useState(false);
-  const [showRegistry, setShowRegistry] = useState(false);
+  const [maestrosSubTab, setMaestrosSubTab] = useState<string>("clientes");
   const [historyFor, setHistoryFor] = useState<any[] | null>(null);
   const [motivos, setMotivos] = useState<any[]>([]);
   const [ejercicios, setEjercicios] = useState<any[]>([]);
   const [personalClienteId, setPersonalClienteId] = useState("");
-  const [registroClienteId, setRegistroClienteId] = useState("");
   const [seleccionPersonaId, setSeleccionPersonaId] = useState("");
   const [seleccionProyectoId, setSeleccionProyectoId] = useState("");
   const [seleccionVinculoId, setSeleccionVinculoId] = useState("");
@@ -61,7 +65,7 @@ export default function InternoPage() {
     ]);
     setStats(s);
     setClientes(c.clientes);
-    setRegistroClienteId((prev) => prev || (c.clientes[0] ? String(c.clientes[0].id) : ""));
+    setPersonalClienteId((prev) => prev || (c.clientes[0] ? String(c.clientes[0].id) : ""));
     setPersonas(p.personas);
     setProyectos(pr.proyectos);
     setVinculos(v.vinculos);
@@ -88,9 +92,9 @@ export default function InternoPage() {
   if (!session || !stats) return <div className="max-w-6xl mx-auto px-7 py-16 text-muted">Cargando…</div>;
 
   const clientesActivos = clientes.filter((c: any) => c.estado !== "Inactivo");
-  const personasDelCliente = personas.filter((p: any) => String(p.clienteId) === registroClienteId);
-  const proyectosDelCliente = proyectos.filter((p: any) => String(p.clienteId) === registroClienteId);
-  const vinculosDelCliente = vinculos.filter((v: any) => String(v.persona?.clienteId) === registroClienteId);
+  const personasDelCliente = personas.filter((p: any) => String(p.clienteId) === personalClienteId);
+  const proyectosDelCliente = proyectos.filter((p: any) => String(p.clienteId) === personalClienteId);
+  const vinculosDelCliente = vinculos.filter((v: any) => String(v.persona?.clienteId) === personalClienteId);
   const personasCliente = personasDelCliente.filter((p: any) => !seleccionPersonaId || String(p.id) === seleccionPersonaId);
   const proyectosCliente = proyectosDelCliente.filter((p: any) => !seleccionProyectoId || String(p.id) === seleccionProyectoId);
   const vinculosCliente = vinculosDelCliente.filter((v: any) => !seleccionVinculoId || String(v.id) === seleccionVinculoId);
@@ -259,8 +263,8 @@ export default function InternoPage() {
     await loadAll();
   }
 
-  function cambiarClienteRegistro(id: string) {
-    setRegistroClienteId(id);
+  function cambiarCliente(id: string) {
+    setPersonalClienteId(id);
     setEditing(null);
     setSeleccionPersonaId("");
     setSeleccionProyectoId("");
@@ -282,7 +286,7 @@ export default function InternoPage() {
     <div className="max-w-[1400px] mx-auto px-7 pb-16">
       <TopBar email={session.email} subtitle="Panel Interno" />
 
-      <div className="grid grid-cols-7 gap-px bg-line border border-line rounded-lg overflow-hidden mb-5 mt-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-px bg-line border border-line rounded-lg overflow-hidden mb-5 mt-4">
         {[
           ["Clientes", stats.clientes],
           ["Investigadores", stats.personas],
@@ -316,38 +320,78 @@ export default function InternoPage() {
 
       {tab === "maestros" && (
       <>
-      {/* GESTIÓN DE DATOS */}
-      <details
-        className="border border-line rounded-lg mb-3.5"
-        open={showMgmt}
-        onToggle={(e: any) => { if (e.target === e.currentTarget) setShowMgmt(e.target.open); }}
-      >
-        <summary className="px-4 py-3 font-semibold text-sm cursor-pointer bg-steel text-white rounded-lg">Gestión de datos (altas)</summary>
-        <div className="p-4 space-y-3">
-          <details className="border border-line rounded-lg">
-            <summary className="px-4 py-2.5 font-semibold text-sm cursor-pointer bg-paper rounded-lg border-l-4 border-accent text-steel">Clientes</summary>
-            <div className="p-4">
-              <MiniForm
-                label="Nuevo cliente"
-                fields={[
-                  { id: "nombre", label: "Razón social" },
-                  { id: "cif", label: "CIF" },
-                ]}
-                onSubmit={(v) => addCliente(v)} buttonLabel="Añadir cliente"
-              />
-            </div>
-          </details>
+      {/* SUB-NAVEGACIÓN */}
+      <div className="flex gap-2 flex-wrap mb-5">
+        {MAESTROS_SUBTABS.map(([id, label]) => (
+          <button
+            key={id}
+            className={`px-3.5 py-2 rounded-full text-sm font-semibold transition-colors ${
+              maestrosSubTab === id ? "bg-accent text-white" : "bg-paper text-muted hover:text-ink"
+            }`}
+            onClick={() => setMaestrosSubTab(id)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
-          <details className="border border-line rounded-lg">
-            <summary className="px-4 py-2.5 font-semibold text-sm cursor-pointer bg-paper rounded-lg border-l-4 border-accent text-steel">Personal y proyectos</summary>
-            <div className="p-4 space-y-4">
-              <label className="flex flex-col gap-1 text-sm text-muted max-w-xs">
-                Cliente
-                <select className="field" value={personalClienteId} onChange={(e) => setPersonalClienteId(e.target.value)}>
-                  <option value="">—</option>
-                  {clientesActivos.map((c: any) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-                </select>
-              </label>
+      {maestrosSubTab === "clientes" && (
+        <div className="panel">
+          <h3 className="font-serif text-base text-steel mb-1">Clientes</h3>
+          <p className="text-sm text-muted mb-3.5">Las empresas para las que la consultora gestiona la bonificación. Cada cliente tiene su propio personal, proyectos y evidencias, sin que se mezclen con los de otros clientes.</p>
+          <MiniForm
+            label="Nuevo cliente"
+            fields={[
+              { id: "nombre", label: "Razón social" },
+              { id: "cif", label: "CIF" },
+            ]}
+            onSubmit={(v) => addCliente(v)} buttonLabel="Añadir cliente"
+          />
+          <div className="overflow-x-auto mt-5">
+          <table className="table-review">
+            <thead><tr><th>Nombre</th><th>CIF</th><th>Estado</th><th>Mín. válidas/mes</th><th></th></tr></thead>
+            <tbody>
+              {clientes.map((c: any) => editing?.type === "cliente" && editing.id === c.id ? (
+                <EditRowCliente key={c.id} c={c} onSave={(d) => saveCliente(c.id, d)} onCancel={() => setEditing(null)} />
+              ) : (
+                <tr key={c.id}>
+                  <td>{c.nombre}</td>
+                  <td className="font-mono text-xs">{c.cif || "—"}</td>
+                  <td>{c.estado === "Inactivo" ? <span className="badge badge-bad">Inactivo</span> : <span className="badge badge-ok">Activo</span>}</td>
+                  <td className="text-center">{c.minEvidenciasValidasMes ?? 1}</td>
+                  <td className="whitespace-nowrap">
+                    <button className="btn btn-ghost mr-1.5" onClick={() => setEditing({ type: "cliente", id: c.id })}>Editar</button>
+                    <button className="btn btn-ghost mr-1.5" onClick={() => saveCliente(c.id, { estado: c.estado === "Inactivo" ? "Activo" : "Inactivo" })}>
+                      {c.estado === "Inactivo" ? "Reactivar" : "Dar de baja"}
+                    </button>
+                    <button className="btn btn-ghost" onClick={() => eliminarRegistro(`/api/clientes/${c.id}`, `el cliente "${c.nombre}"`)}>Eliminar</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          </div>
+        </div>
+      )}
+
+      {maestrosSubTab === "personal" && (
+        <div className="panel">
+          <h3 className="font-serif text-base text-steel mb-1">Personal, proyectos y vínculos</h3>
+          <p className="text-sm text-muted mb-3.5">Un <b>vínculo</b> conecta a una persona con un proyecto (con su dedicación en %); a partir de ahí se generan, mes a mes, las mensualidades donde esa persona debe aportar su evidencia de trabajo.</p>
+          <label className="flex flex-col gap-1 text-sm text-muted max-w-xs mb-4">
+            Cliente
+            <select className="field" value={personalClienteId} onChange={(e) => cambiarCliente(e.target.value)}>
+              <option value="">— Selecciona un cliente —</option>
+              {clientes.map((c: any) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+            </select>
+          </label>
+
+          {!personalClienteId ? (
+            <div className="text-muted text-sm py-8 text-center border border-dashed border-line rounded-lg">
+              Selecciona un cliente para dar de alta o editar su personal, proyectos y vínculos.
+            </div>
+          ) : (
+            <div className="space-y-5">
               <MiniForm
                 label="Nueva persona"
                 fields={[
@@ -382,250 +426,204 @@ export default function InternoPage() {
                 ]}
                 onSubmit={(v) => addEjercicio({ ...v, clienteId: personalClienteId })} buttonLabel="Añadir ejercicio"
               />
-              {personalClienteId && (
-                <div>
-                  <div className="text-xs uppercase tracking-wide text-muted mb-2">Ejercicios de este cliente</div>
-                  {ejercicios.filter((ej: any) => String(ej.clienteId) === personalClienteId).length === 0 && (
-                    <div className="text-muted text-sm mb-2">Sin ejercicios creados todavía.</div>
-                  )}
-                  {ejercicios.filter((ej: any) => String(ej.clienteId) === personalClienteId).map((ej: any) => (
-                    <div key={ej.id} className="flex items-center justify-between gap-2 text-sm py-1.5 border-b last:border-0 border-[#EFF1F3]">
-                      <div>
-                        <b>{ej.nombre}</b> <span className="text-muted">({ej.fechaInicio} — {ej.fechaFin})</span>
-                        {ej.requiereIMV && <span className="badge badge-pend ml-1.5">Requiere IMV tipo D</span>}
-                        <span className="text-muted ml-1.5">Límite IMV: {ej.fechaLimiteIMV}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`badge ${ej.estado === "cerrado" ? "badge-bad" : "badge-ok"}`}>{ej.estado}</span>
-                        <button className="btn btn-ghost" onClick={() => toggleEjercicio(ej.id, ej.estado === "cerrado" ? "abierto" : "cerrado")}>
-                          {ej.estado === "cerrado" ? "Reabrir" : "Cerrar"}
-                        </button>
-                      </div>
+              <div>
+                <div className="text-xs uppercase tracking-wide text-muted mb-2">Ejercicios de este cliente</div>
+                {ejercicios.filter((ej: any) => String(ej.clienteId) === personalClienteId).length === 0 && (
+                  <div className="text-muted text-sm mb-2">Sin ejercicios creados todavía.</div>
+                )}
+                {ejercicios.filter((ej: any) => String(ej.clienteId) === personalClienteId).map((ej: any) => (
+                  <div key={ej.id} className="flex items-center justify-between gap-2 text-sm py-1.5 border-b last:border-0 border-[#EFF1F3]">
+                    <div>
+                      <b>{ej.nombre}</b> <span className="text-muted">({ej.fechaInicio} — {ej.fechaFin})</span>
+                      {ej.requiereIMV && <span className="badge badge-pend ml-1.5">Requiere IMV tipo D</span>}
+                      <span className="text-muted ml-1.5">Límite IMV: {ej.fechaLimiteIMV}</span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </details>
-
-          <details className="border border-line rounded-lg">
-            <summary className="px-4 py-2.5 font-semibold text-sm cursor-pointer bg-paper rounded-lg border-l-4 border-accent text-steel">Mensualidades</summary>
-            <div className="p-4">
-              <div className="bg-paper border border-line rounded-md p-3.5 flex items-end gap-3 flex-wrap">
-                <div className="flex-[2] min-w-[220px] text-sm">
-                  <b className="text-ink">Generar mensualidades en lote</b>
-                  <div className="text-muted">
-                    Para el ejercicio elegido, crea la mensualidad pendiente de cada vínculo activo desde su inicio
-                    (o el alta en bonificación de la persona, si es posterior) hasta el mes actual. Nunca crea meses futuros.
+                    <div className="flex items-center gap-2">
+                      <span className={`badge ${ej.estado === "cerrado" ? "badge-bad" : "badge-ok"}`}>{ej.estado}</span>
+                      <button className="btn btn-ghost" onClick={() => toggleEjercicio(ej.id, ej.estado === "cerrado" ? "abierto" : "cerrado")}>
+                        {ej.estado === "cerrado" ? "Reabrir" : "Cerrar"}
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <LoteForm ejercicios={ejercicios} onSubmit={generarLote} />
-              </div>
-            </div>
-          </details>
-
-          <details className="border border-line rounded-lg">
-            <summary className="px-4 py-2.5 font-semibold text-sm cursor-pointer bg-paper rounded-lg border-l-4 border-accent text-steel">Usuarios y permisos</summary>
-            <div className="p-4 space-y-4">
-              <div className="bg-paper border border-line rounded-md p-3.5">
-                <div className="text-sm mb-2"><b className="text-ink">Nuevo usuario</b></div>
-                <UsuarioForm clientes={clientesActivos} personas={personas} onSubmit={addUsuario} />
-              </div>
-              {session.rol === "admin_consultora" && (
-                <div className="bg-paper border border-line rounded-md p-3.5">
-                  <div className="text-sm mb-2"><b className="text-ink">Autorización de edición (técnicos)</b></div>
-                  <div className="text-muted text-sm mb-2">
-                    Un técnico solo puede crear/editar/borrar clientes, personas, proyectos y vínculos si está autorizado aquí.
-                    Revisar evidencias no se ve afectado.
-                  </div>
-                  <TecnicosAutorizacion />
-                </div>
-              )}
-            </div>
-          </details>
-        </div>
-      </details>
-
-      {/* REGISTROS EXISTENTES */}
-      <details
-        className="border border-line rounded-lg mb-5"
-        open={showRegistry}
-        onToggle={(e: any) => { if (e.target === e.currentTarget) setShowRegistry(e.target.open); }}
-      >
-        <summary className="px-4 py-3 font-semibold text-sm cursor-pointer bg-steel text-white rounded-lg">Registros existentes (editar / dar de baja)</summary>
-        <div className="p-4">
-          <div className="text-xs uppercase tracking-wide text-muted mb-2">Clientes</div>
-          <table className="table-review mb-5">
-            <thead><tr><th>Nombre</th><th>CIF</th><th>Estado</th><th>Mín. válidas/mes</th><th></th></tr></thead>
-            <tbody>
-              {clientes.map((c: any) => editing?.type === "cliente" && editing.id === c.id ? (
-                <EditRowCliente key={c.id} c={c} onSave={(d) => saveCliente(c.id, d)} onCancel={() => setEditing(null)} />
-              ) : (
-                <tr key={c.id}>
-                  <td>{c.nombre}</td>
-                  <td className="font-mono text-xs">{c.cif || "—"}</td>
-                  <td>{c.estado === "Inactivo" ? <span className="badge badge-bad">Inactivo</span> : <span className="badge badge-ok">Activo</span>}</td>
-                  <td className="text-center">{c.minEvidenciasValidasMes ?? 1}</td>
-                  <td className="whitespace-nowrap">
-                    <button className="btn btn-ghost mr-1.5" onClick={() => setEditing({ type: "cliente", id: c.id })}>Editar</button>
-                    <button className="btn btn-ghost mr-1.5" onClick={() => saveCliente(c.id, { estado: c.estado === "Inactivo" ? "Activo" : "Inactivo" })}>
-                      {c.estado === "Inactivo" ? "Reactivar" : "Dar de baja"}
-                    </button>
-                    <button className="btn btn-ghost" onClick={() => eliminarRegistro(`/api/clientes/${c.id}`, `el cliente "${c.nombre}"`)}>Eliminar</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <label className="flex flex-col gap-1 text-sm text-muted mb-4 max-w-xs">
-            Cliente
-            <select className="field" value={registroClienteId} onChange={(e) => cambiarClienteRegistro(e.target.value)}>
-              <option value="">— Selecciona un cliente —</option>
-              {clientes.map((c: any) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-            </select>
-          </label>
-
-          {!registroClienteId ? (
-            <div className="text-muted text-sm py-8 text-center border border-dashed border-line rounded-lg mb-5">
-              Selecciona un cliente para ver su personal, proyectos y vínculos.
-            </div>
-          ) : (
-            <>
-              <div className="text-xs uppercase tracking-wide text-muted mb-2">Personas</div>
-              <select
-                className="field mb-2.5 max-w-xs"
-                value={seleccionPersonaId}
-                onChange={(e) => setSeleccionPersonaId(e.target.value)}
-              >
-                <option value="">Todas</option>
-                {personasDelCliente.map((p: any) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
-              </select>
-              <div className="overflow-x-auto mb-5">
-              <table className="table-review">
-                <thead>
-                  <tr>
-                    <th>Nombre</th><th>ID de usuario</th><th>Puesto</th><th>Titulación</th>
-                    <th>F. Incorporación</th><th>F. Alta Bonif.</th><th>F. Baja Bonif.</th><th>Estado</th><th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {personasCliente.length === 0 && (
-                    <tr><td colSpan={9} className="text-center text-muted py-4">Sin personas que coincidan.</td></tr>
-                  )}
-                  {personasCliente.map((p: any) => editing?.type === "persona" && editing.id === p.id ? (
-                    <EditRowPersona key={p.id} p={p} onSave={(d) => savePersona(p.id, d)} onCancel={() => setEditing(null)} />
-                  ) : (
-                    <tr key={p.id}>
-                      <td><Link href={`/interno/personas/${p.id}`} className="underline text-accent">{p.nombre}</Link></td>
-                      <td className="font-mono text-xs">{p.idUsuario || "—"}</td>
-                      <td>{p.puesto || "—"}</td>
-                      <td>{p.titulacion || "—"}</td>
-                      <td>{p.fechaIncorporacion || "—"}</td>
-                      <td>{p.fechaAltaBonificacion || "—"}</td>
-                      <td>{p.fechaBajaBonificacion || "—"}</td>
-                      <td>{p.estado === "Baja" ? <span className="badge badge-bad">Baja</span> : <span className="badge badge-ok">Activo</span>}</td>
-                      <td className="whitespace-nowrap">
-                        <button className="btn btn-ghost mr-1.5" onClick={() => setEditing({ type: "persona", id: p.id })}>Editar</button>
-                        <button className="btn btn-ghost mr-1.5" onClick={() => savePersona(p.id, { estado: p.estado === "Baja" ? "Activo" : "Baja" })}>
-                          {p.estado === "Baja" ? "Reactivar" : "Dar de baja"}
-                        </button>
-                        <button className="btn btn-ghost" onClick={() => eliminarRegistro(`/api/personas/${p.id}`, `la persona "${p.nombre}"`)}>Eliminar</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              </div>
-
-              <div className="text-xs uppercase tracking-wide text-muted mb-2">Proyectos</div>
-              <select
-                className="field mb-2.5 max-w-xs"
-                value={seleccionProyectoId}
-                onChange={(e) => setSeleccionProyectoId(e.target.value)}
-              >
-                <option value="">Todos</option>
-                {proyectosDelCliente.map((p: any) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
-              </select>
-              <div className="overflow-x-auto mb-5">
-              <table className="table-review">
-                <thead>
-                  <tr>
-                    <th>Nombre</th><th>Código</th><th>Descripción breve</th><th>Descripción técnica</th>
-                    <th>Tecnologías</th><th>F. Inicio</th><th>Estado</th><th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {proyectosCliente.length === 0 && (
-                    <tr><td colSpan={8} className="text-center text-muted py-4">Sin proyectos que coincidan.</td></tr>
-                  )}
-                  {proyectosCliente.map((p: any) => editing?.type === "proyecto" && editing.id === p.id ? (
-                    <EditRowProyecto key={p.id} p={p} onSave={(d) => saveProyecto(p.id, d)} onCancel={() => setEditing(null)} />
-                  ) : (
-                    <tr key={p.id}>
-                      <td>{p.nombre}</td>
-                      <td className="font-mono text-xs">{p.codigo || "—"}</td>
-                      <td>{p.descripcionBreve || "—"}</td>
-                      <td>{p.descripcionTecnica || "—"}</td>
-                      <td>{p.tecnologias || "—"}</td>
-                      <td>{p.fechaInicio || "—"}</td>
-                      <td>{p.estado === "Finalizado" ? <span className="badge badge-pend">Finalizado</span> : <span className="badge badge-ok">Activo</span>}</td>
-                      <td className="whitespace-nowrap">
-                        <button className="btn btn-ghost mr-1.5" onClick={() => setEditing({ type: "proyecto", id: p.id })}>Editar</button>
-                        <button className="btn btn-ghost mr-1.5" onClick={() => saveProyecto(p.id, { estado: p.estado === "Finalizado" ? "Activo" : "Finalizado" })}>
-                          {p.estado === "Finalizado" ? "Reactivar" : "Finalizar"}
-                        </button>
-                        <button className="btn btn-ghost" onClick={() => eliminarRegistro(`/api/proyectos/${p.id}`, `el proyecto "${p.nombre}"`)}>Eliminar</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              </div>
-
-              <div className="text-xs uppercase tracking-wide text-muted mb-2">Vínculos persona-proyecto</div>
-              <select
-                className="field mb-2.5 max-w-xs"
-                value={seleccionVinculoId}
-                onChange={(e) => setSeleccionVinculoId(e.target.value)}
-              >
-                <option value="">Todos</option>
-                {vinculosDelCliente.map((v: any) => (
-                  <option key={v.id} value={v.id}>{v.persona?.nombre} — {v.proyecto?.nombre}</option>
                 ))}
-              </select>
-              <table className="table-review">
-                <thead><tr><th>Persona — Proyecto</th><th>Dedicación</th><th>Estado</th><th></th></tr></thead>
-                <tbody>
-                  {vinculosCliente.length === 0 && (
-                    <tr><td colSpan={4} className="text-center text-muted py-4">Sin vínculos que coincidan.</td></tr>
-                  )}
-                  {vinculosCliente.map((v: any) => editing?.type === "vinculo" && editing.id === v.id ? (
-                    <EditRowVinculo key={v.id} v={v} onSave={(d) => saveVinculo(v.id, d)} onCancel={() => setEditing(null)} />
-                  ) : (
-                    <tr key={v.id}>
-                      <td>{v.persona?.nombre} — {v.proyecto?.nombre}</td><td>{v.dedicacion}%</td>
-                      <td>{v.activo ? <span className="badge badge-ok">Activo</span> : <span className="badge badge-bad">Inactivo</span>}</td>
-                      <td className="whitespace-nowrap">
-                        <button className="btn btn-ghost mr-1.5" onClick={() => setEditing({ type: "vinculo", id: v.id })}>Editar</button>
-                        <button className="btn btn-ghost mr-1.5" onClick={() => saveVinculo(v.id, { activo: !v.activo })}>
-                          {v.activo ? "Dar de baja" : "Reactivar"}
-                        </button>
-                        <button
-                          className="btn btn-ghost"
-                          onClick={() => eliminarRegistro(`/api/vinculos/${v.id}`, `el vínculo "${v.persona?.nombre} — ${v.proyecto?.nombre}"`)}
-                        >
-                          Eliminar
-                        </button>
-                      </td>
+              </div>
+
+              <div className="border-t border-line pt-5">
+                <div className="text-xs uppercase tracking-wide text-muted mb-2">Personas</div>
+                <select
+                  className="field mb-2.5 max-w-xs"
+                  value={seleccionPersonaId}
+                  onChange={(e) => setSeleccionPersonaId(e.target.value)}
+                >
+                  <option value="">Todas</option>
+                  {personasDelCliente.map((p: any) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                </select>
+                <div className="overflow-x-auto mb-5">
+                <table className="table-review">
+                  <thead>
+                    <tr>
+                      <th>Nombre</th><th>ID de usuario</th><th>Puesto</th><th>Titulación</th>
+                      <th>F. Incorporación</th><th>F. Alta Bonif.</th><th>F. Baja Bonif.</th><th>Estado</th><th></th>
                     </tr>
+                  </thead>
+                  <tbody>
+                    {personasCliente.length === 0 && (
+                      <tr><td colSpan={9} className="text-center text-muted py-4">Sin personas que coincidan.</td></tr>
+                    )}
+                    {personasCliente.map((p: any) => editing?.type === "persona" && editing.id === p.id ? (
+                      <EditRowPersona key={p.id} p={p} onSave={(d) => savePersona(p.id, d)} onCancel={() => setEditing(null)} />
+                    ) : (
+                      <tr key={p.id}>
+                        <td><Link href={`/interno/personas/${p.id}`} className="underline text-accent">{p.nombre}</Link></td>
+                        <td className="font-mono text-xs">{p.idUsuario || "—"}</td>
+                        <td>{p.puesto || "—"}</td>
+                        <td>{p.titulacion || "—"}</td>
+                        <td>{p.fechaIncorporacion || "—"}</td>
+                        <td>{p.fechaAltaBonificacion || "—"}</td>
+                        <td>{p.fechaBajaBonificacion || "—"}</td>
+                        <td>{p.estado === "Baja" ? <span className="badge badge-bad">Baja</span> : <span className="badge badge-ok">Activo</span>}</td>
+                        <td className="whitespace-nowrap">
+                          <button className="btn btn-ghost mr-1.5" onClick={() => setEditing({ type: "persona", id: p.id })}>Editar</button>
+                          <button className="btn btn-ghost mr-1.5" onClick={() => savePersona(p.id, { estado: p.estado === "Baja" ? "Activo" : "Baja" })}>
+                            {p.estado === "Baja" ? "Reactivar" : "Dar de baja"}
+                          </button>
+                          <button className="btn btn-ghost" onClick={() => eliminarRegistro(`/api/personas/${p.id}`, `la persona "${p.nombre}"`)}>Eliminar</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                </div>
+
+                <div className="text-xs uppercase tracking-wide text-muted mb-2">Proyectos</div>
+                <select
+                  className="field mb-2.5 max-w-xs"
+                  value={seleccionProyectoId}
+                  onChange={(e) => setSeleccionProyectoId(e.target.value)}
+                >
+                  <option value="">Todos</option>
+                  {proyectosDelCliente.map((p: any) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                </select>
+                <div className="overflow-x-auto mb-5">
+                <table className="table-review">
+                  <thead>
+                    <tr>
+                      <th>Nombre</th><th>Código</th><th>Descripción breve</th><th>Descripción técnica</th>
+                      <th>Tecnologías</th><th>F. Inicio</th><th>Estado</th><th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {proyectosCliente.length === 0 && (
+                      <tr><td colSpan={8} className="text-center text-muted py-4">Sin proyectos que coincidan.</td></tr>
+                    )}
+                    {proyectosCliente.map((p: any) => editing?.type === "proyecto" && editing.id === p.id ? (
+                      <EditRowProyecto key={p.id} p={p} onSave={(d) => saveProyecto(p.id, d)} onCancel={() => setEditing(null)} />
+                    ) : (
+                      <tr key={p.id}>
+                        <td>{p.nombre}</td>
+                        <td className="font-mono text-xs">{p.codigo || "—"}</td>
+                        <td>{p.descripcionBreve || "—"}</td>
+                        <td>{p.descripcionTecnica || "—"}</td>
+                        <td>{p.tecnologias || "—"}</td>
+                        <td>{p.fechaInicio || "—"}</td>
+                        <td>{p.estado === "Finalizado" ? <span className="badge badge-pend">Finalizado</span> : <span className="badge badge-ok">Activo</span>}</td>
+                        <td className="whitespace-nowrap">
+                          <button className="btn btn-ghost mr-1.5" onClick={() => setEditing({ type: "proyecto", id: p.id })}>Editar</button>
+                          <button className="btn btn-ghost mr-1.5" onClick={() => saveProyecto(p.id, { estado: p.estado === "Finalizado" ? "Activo" : "Finalizado" })}>
+                            {p.estado === "Finalizado" ? "Reactivar" : "Finalizar"}
+                          </button>
+                          <button className="btn btn-ghost" onClick={() => eliminarRegistro(`/api/proyectos/${p.id}`, `el proyecto "${p.nombre}"`)}>Eliminar</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                </div>
+
+                <div className="text-xs uppercase tracking-wide text-muted mb-2">Vínculos persona-proyecto</div>
+                <select
+                  className="field mb-2.5 max-w-xs"
+                  value={seleccionVinculoId}
+                  onChange={(e) => setSeleccionVinculoId(e.target.value)}
+                >
+                  <option value="">Todos</option>
+                  {vinculosDelCliente.map((v: any) => (
+                    <option key={v.id} value={v.id}>{v.persona?.nombre} — {v.proyecto?.nombre}</option>
                   ))}
-                </tbody>
-              </table>
-            </>
+                </select>
+                <div className="overflow-x-auto">
+                <table className="table-review">
+                  <thead><tr><th>Persona — Proyecto</th><th>Dedicación</th><th>Estado</th><th></th></tr></thead>
+                  <tbody>
+                    {vinculosCliente.length === 0 && (
+                      <tr><td colSpan={4} className="text-center text-muted py-4">Sin vínculos que coincidan.</td></tr>
+                    )}
+                    {vinculosCliente.map((v: any) => editing?.type === "vinculo" && editing.id === v.id ? (
+                      <EditRowVinculo key={v.id} v={v} onSave={(d) => saveVinculo(v.id, d)} onCancel={() => setEditing(null)} />
+                    ) : (
+                      <tr key={v.id}>
+                        <td>{v.persona?.nombre} — {v.proyecto?.nombre}</td><td>{v.dedicacion}%</td>
+                        <td>{v.activo ? <span className="badge badge-ok">Activo</span> : <span className="badge badge-bad">Inactivo</span>}</td>
+                        <td className="whitespace-nowrap">
+                          <button className="btn btn-ghost mr-1.5" onClick={() => setEditing({ type: "vinculo", id: v.id })}>Editar</button>
+                          <button className="btn btn-ghost mr-1.5" onClick={() => saveVinculo(v.id, { activo: !v.activo })}>
+                            {v.activo ? "Dar de baja" : "Reactivar"}
+                          </button>
+                          <button
+                            className="btn btn-ghost"
+                            onClick={() => eliminarRegistro(`/api/vinculos/${v.id}`, `el vínculo "${v.persona?.nombre} — ${v.proyecto?.nombre}"`)}
+                          >
+                            Eliminar
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                </div>
+              </div>
+            </div>
           )}
         </div>
-      </details>
+      )}
+
+      {maestrosSubTab === "mensualidades" && (
+        <div className="panel">
+          <h3 className="font-serif text-base text-steel mb-1">Mensualidades</h3>
+          <p className="text-sm text-muted mb-3.5">Una mensualidad es el registro mensual donde una persona debe aportar la evidencia de un vínculo. Normalmente se generan solas en lote; aquí solo hace falta lanzarlo.</p>
+          <div className="bg-paper border border-line rounded-md p-3.5 flex items-end gap-3 flex-wrap">
+            <div className="flex-[2] min-w-[220px] text-sm">
+              <b className="text-ink">Generar mensualidades en lote</b>
+              <div className="text-muted">
+                Para el ejercicio elegido, crea la mensualidad pendiente de cada vínculo activo desde su inicio
+                (o el alta en bonificación de la persona, si es posterior) hasta el mes actual. Nunca crea meses futuros.
+              </div>
+            </div>
+            <LoteForm ejercicios={ejercicios} onSubmit={generarLote} />
+          </div>
+        </div>
+      )}
+
+      {maestrosSubTab === "usuarios" && (
+        <div className="panel">
+          <h3 className="font-serif text-base text-steel mb-1">Usuarios y permisos</h3>
+          <p className="text-sm text-muted mb-3.5">Cada usuario entra con su rol: <b>admin_cliente</b> ve y gestiona todo el personal de su empresa, <b>investigador</b> solo su propia ficha, y <b>técnico</b> ayuda a revisar evidencias (con autorización, también puede editar datos maestros).</p>
+          <div className="bg-paper border border-line rounded-md p-3.5">
+            <div className="text-sm mb-2"><b className="text-ink">Nuevo usuario</b></div>
+            <UsuarioForm clientes={clientesActivos} personas={personas} onSubmit={addUsuario} />
+          </div>
+          {session.rol === "admin_consultora" && (
+            <div className="bg-paper border border-line rounded-md p-3.5 mt-4">
+              <div className="text-sm mb-2"><b className="text-ink">Autorización de edición (técnicos)</b></div>
+              <div className="text-muted text-sm mb-2">
+                Un técnico solo puede crear/editar/borrar clientes, personas, proyectos y vínculos si está autorizado aquí.
+                Revisar evidencias no se ve afectado.
+              </div>
+              <TecnicosAutorizacion />
+            </div>
+          )}
+        </div>
+      )}
       </>
       )}
 
@@ -633,7 +631,8 @@ export default function InternoPage() {
       <>
       {/* FILTROS + TABLA DE REVISIÓN */}
       <div className="panel">
-        <h3 className="font-serif text-base text-steel mb-3.5">Evidencias — todas las mensualidades</h3>
+        <h3 className="font-serif text-base text-steel mb-1">Evidencias — todas las mensualidades</h3>
+        <p className="text-sm text-muted mb-3.5">Cada fila es un mes que una persona debe justificar en un proyecto. Pulsa "Revisar" para validar o rechazar lo que ha aportado.</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-2">
           <label className="label">
             Cliente
@@ -692,6 +691,7 @@ export default function InternoPage() {
           <button className="btn btn-ghost" onClick={() => updateFilter({ clienteId: "", proyectoId: "", personaId: "", mes: "", anio: "", estado: "", ejercicioId: "" })}>Limpiar filtros</button>
         </div>
 
+        <div className="overflow-x-auto">
         <table className="table-review">
           <thead><tr><th>Cliente</th><th>Persona</th><th>Proyecto</th><th>Mes</th><th>Estado</th><th></th></tr></thead>
           <tbody>
@@ -721,6 +721,7 @@ export default function InternoPage() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
       </>
       )}
@@ -765,10 +766,10 @@ export default function InternoPage() {
             </div>
             <textarea className="field min-h-[80px]" placeholder="Motivo del rechazo (obligatorio) o comentario de validación…" value={comentario} onChange={(e) => setComentario(e.target.value)} />
             <div className="flex justify-end gap-2 mt-4">
-              <button className="btn" style={{ borderColor: "#B5473A", color: "#B5473A" }} onClick={() => decide("rechazada")}>Rechazar</button>
+              <button className="btn" style={{ borderColor: "#9C3E2F", color: "#9C3E2F" }} onClick={() => decide("rechazada")}>Rechazar</button>
               <button
                 className="btn btn-primary"
-                style={{ background: canValidate ? "#3F9A68" : undefined, borderColor: "#3F9A68" }}
+                style={{ background: canValidate ? "#176B45" : undefined, borderColor: "#176B45" }}
                 disabled={!canValidate}
                 title={!todosRevisados ? "Revisa todos los archivos primero" : !cumpleMinimo ? `Faltan archivos válidos (mínimo ${minRequerido})` : undefined}
                 onClick={() => decide("validada")}

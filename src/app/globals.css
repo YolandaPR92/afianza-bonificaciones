@@ -31,7 +31,7 @@
     @apply text-sm text-muted mb-1 block;
   }
   .badge {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide border;
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border;
   }
   .badge-ok { @apply text-ok bg-okbg border-[#bfe2d3]; }
   .badge-bad { @apply text-bad bg-badbg border-[#ecc7bf]; }
@@ -41,7 +41,7 @@
     @apply w-full border-collapse text-sm;
   }
   .table-review th {
-    @apply text-left text-[10.5px] uppercase tracking-wide text-muted px-3 py-2 border-b-2 border-steel;
+    @apply text-left text-xs uppercase tracking-wide text-muted px-3 py-2 border-b-2 border-steel;
   }
   .table-review td {
     @apply px-3 py-2.5 border-b border-[#EEF0F2];
