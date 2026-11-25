@@ -12,7 +12,9 @@ const TABS: [string, string][] = [
 ];
 const MAESTROS_SUBTABS: [string, string][] = [
   ["clientes", "Clientes"],
-  ["personal", "Personal, proyectos y vínculos"],
+  ["personas", "Personas"],
+  ["proyectos", "Proyectos"],
+  ["vinculos", "Vínculos"],
   ["mensualidades", "Mensualidades"],
   ["usuarios", "Usuarios y permisos"],
 ];
@@ -374,24 +376,25 @@ export default function InternoPage() {
         </div>
       )}
 
-      {maestrosSubTab === "personal" && (
-        <div className="panel">
-          <h3 className="font-serif text-base text-steel mb-1">Personal, proyectos y vínculos</h3>
-          <p className="text-sm text-muted mb-3.5">Un <b>vínculo</b> conecta a una persona con un proyecto (con su dedicación en %); a partir de ahí se generan, mes a mes, las mensualidades donde esa persona debe aportar su evidencia de trabajo.</p>
-          <label className="flex flex-col gap-1 text-sm text-muted max-w-xs mb-4">
-            Cliente
-            <select className="field" value={personalClienteId} onChange={(e) => cambiarCliente(e.target.value)}>
-              <option value="">— Selecciona un cliente —</option>
-              {clientes.map((c: any) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-            </select>
-          </label>
+      {(maestrosSubTab === "personas" || maestrosSubTab === "proyectos" || maestrosSubTab === "vinculos" || maestrosSubTab === "mensualidades") && (
+        <label className="flex flex-col gap-1 text-sm text-muted max-w-xs mb-4">
+          Cliente
+          <select className="field" value={personalClienteId} onChange={(e) => cambiarCliente(e.target.value)}>
+            <option value="">— Selecciona un cliente —</option>
+            {clientes.map((c: any) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+          </select>
+        </label>
+      )}
 
+      {maestrosSubTab === "personas" && (
+        <div className="panel">
+          <h3 className="font-serif text-base text-steel mb-3.5">Personas</h3>
           {!personalClienteId ? (
             <div className="text-muted text-sm py-8 text-center border border-dashed border-line rounded-lg">
-              Selecciona un cliente para dar de alta o editar su personal, proyectos y vínculos.
+              Selecciona un cliente para dar de alta o editar su personal.
             </div>
           ) : (
-            <div className="space-y-5">
+            <>
               <MiniForm
                 label="Nueva persona"
                 fields={[
@@ -404,6 +407,64 @@ export default function InternoPage() {
                 ]}
                 onSubmit={(v) => addPersona({ ...v, clienteId: personalClienteId })} buttonLabel="Añadir persona"
               />
+              <select
+                className="field mt-5 mb-2.5 max-w-xs"
+                value={seleccionPersonaId}
+                onChange={(e) => setSeleccionPersonaId(e.target.value)}
+              >
+                <option value="">Todas</option>
+                {personasDelCliente.map((p: any) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+              </select>
+              <div className="overflow-x-auto">
+              <table className="table-review">
+                <thead>
+                  <tr>
+                    <th>Nombre</th><th>ID de usuario</th><th>Puesto</th><th>Titulación</th>
+                    <th>F. Incorporación</th><th>F. Alta Bonif.</th><th>F. Baja Bonif.</th><th>Estado</th><th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {personasCliente.length === 0 && (
+                    <tr><td colSpan={9} className="text-center text-muted py-4">Sin personas que coincidan.</td></tr>
+                  )}
+                  {personasCliente.map((p: any) => editing?.type === "persona" && editing.id === p.id ? (
+                    <EditRowPersona key={p.id} p={p} onSave={(d) => savePersona(p.id, d)} onCancel={() => setEditing(null)} />
+                  ) : (
+                    <tr key={p.id}>
+                      <td><Link href={`/interno/personas/${p.id}`} className="underline text-accent">{p.nombre}</Link></td>
+                      <td className="font-mono text-xs">{p.idUsuario || "—"}</td>
+                      <td>{p.puesto || "—"}</td>
+                      <td>{p.titulacion || "—"}</td>
+                      <td>{p.fechaIncorporacion || "—"}</td>
+                      <td>{p.fechaAltaBonificacion || "—"}</td>
+                      <td>{p.fechaBajaBonificacion || "—"}</td>
+                      <td>{p.estado === "Baja" ? <span className="badge badge-bad">Baja</span> : <span className="badge badge-ok">Activo</span>}</td>
+                      <td className="whitespace-nowrap">
+                        <button className="btn btn-ghost mr-1.5" onClick={() => setEditing({ type: "persona", id: p.id })}>Editar</button>
+                        <button className="btn btn-ghost mr-1.5" onClick={() => savePersona(p.id, { estado: p.estado === "Baja" ? "Activo" : "Baja" })}>
+                          {p.estado === "Baja" ? "Reactivar" : "Dar de baja"}
+                        </button>
+                        <button className="btn btn-ghost" onClick={() => eliminarRegistro(`/api/personas/${p.id}`, `la persona "${p.nombre}"`)}>Eliminar</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {maestrosSubTab === "proyectos" && (
+        <div className="panel">
+          <h3 className="font-serif text-base text-steel mb-3.5">Proyectos</h3>
+          {!personalClienteId ? (
+            <div className="text-muted text-sm py-8 text-center border border-dashed border-line rounded-lg">
+              Selecciona un cliente para dar de alta o editar sus proyectos.
+            </div>
+          ) : (
+            <>
               <MiniForm
                 label="Nuevo proyecto"
                 fields={[
@@ -416,7 +477,117 @@ export default function InternoPage() {
                 ]}
                 onSubmit={(v) => addProyecto({ ...v, clienteId: personalClienteId })} buttonLabel="Añadir proyecto"
               />
+              <select
+                className="field mt-5 mb-2.5 max-w-xs"
+                value={seleccionProyectoId}
+                onChange={(e) => setSeleccionProyectoId(e.target.value)}
+              >
+                <option value="">Todos</option>
+                {proyectosDelCliente.map((p: any) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+              </select>
+              <div className="overflow-x-auto">
+              <table className="table-review">
+                <thead>
+                  <tr>
+                    <th>Nombre</th><th>Código</th><th>Descripción breve</th><th>Descripción técnica</th>
+                    <th>Tecnologías</th><th>F. Inicio</th><th>Estado</th><th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {proyectosCliente.length === 0 && (
+                    <tr><td colSpan={8} className="text-center text-muted py-4">Sin proyectos que coincidan.</td></tr>
+                  )}
+                  {proyectosCliente.map((p: any) => editing?.type === "proyecto" && editing.id === p.id ? (
+                    <EditRowProyecto key={p.id} p={p} onSave={(d) => saveProyecto(p.id, d)} onCancel={() => setEditing(null)} />
+                  ) : (
+                    <tr key={p.id}>
+                      <td>{p.nombre}</td>
+                      <td className="font-mono text-xs">{p.codigo || "—"}</td>
+                      <td>{p.descripcionBreve || "—"}</td>
+                      <td>{p.descripcionTecnica || "—"}</td>
+                      <td>{p.tecnologias || "—"}</td>
+                      <td>{p.fechaInicio || "—"}</td>
+                      <td>{p.estado === "Finalizado" ? <span className="badge badge-pend">Finalizado</span> : <span className="badge badge-ok">Activo</span>}</td>
+                      <td className="whitespace-nowrap">
+                        <button className="btn btn-ghost mr-1.5" onClick={() => setEditing({ type: "proyecto", id: p.id })}>Editar</button>
+                        <button className="btn btn-ghost mr-1.5" onClick={() => saveProyecto(p.id, { estado: p.estado === "Finalizado" ? "Activo" : "Finalizado" })}>
+                          {p.estado === "Finalizado" ? "Reactivar" : "Finalizar"}
+                        </button>
+                        <button className="btn btn-ghost" onClick={() => eliminarRegistro(`/api/proyectos/${p.id}`, `el proyecto "${p.nombre}"`)}>Eliminar</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {maestrosSubTab === "vinculos" && (
+        <div className="panel">
+          <h3 className="font-serif text-base text-steel mb-1">Vínculos</h3>
+          <p className="text-sm text-muted mb-3.5">Un <b>vínculo</b> conecta a una persona con un proyecto (con su dedicación en %); a partir de ahí se generan, mes a mes, las mensualidades donde esa persona debe aportar su evidencia de trabajo.</p>
+          {!personalClienteId ? (
+            <div className="text-muted text-sm py-8 text-center border border-dashed border-line rounded-lg">
+              Selecciona un cliente para crear o editar sus vínculos.
+            </div>
+          ) : (
+            <>
               <VincularForm clienteId={personalClienteId} personas={personas} proyectos={proyectos} onSubmit={addVinculo} />
+              <select
+                className="field mt-5 mb-2.5 max-w-xs"
+                value={seleccionVinculoId}
+                onChange={(e) => setSeleccionVinculoId(e.target.value)}
+              >
+                <option value="">Todos</option>
+                {vinculosDelCliente.map((v: any) => (
+                  <option key={v.id} value={v.id}>{v.persona?.nombre} — {v.proyecto?.nombre}</option>
+                ))}
+              </select>
+              <div className="overflow-x-auto">
+              <table className="table-review">
+                <thead><tr><th>Persona — Proyecto</th><th>Dedicación</th><th>Estado</th><th></th></tr></thead>
+                <tbody>
+                  {vinculosCliente.length === 0 && (
+                    <tr><td colSpan={4} className="text-center text-muted py-4">Sin vínculos que coincidan.</td></tr>
+                  )}
+                  {vinculosCliente.map((v: any) => editing?.type === "vinculo" && editing.id === v.id ? (
+                    <EditRowVinculo key={v.id} v={v} onSave={(d) => saveVinculo(v.id, d)} onCancel={() => setEditing(null)} />
+                  ) : (
+                    <tr key={v.id}>
+                      <td>{v.persona?.nombre} — {v.proyecto?.nombre}</td><td>{v.dedicacion}%</td>
+                      <td>{v.activo ? <span className="badge badge-ok">Activo</span> : <span className="badge badge-bad">Inactivo</span>}</td>
+                      <td className="whitespace-nowrap">
+                        <button className="btn btn-ghost mr-1.5" onClick={() => setEditing({ type: "vinculo", id: v.id })}>Editar</button>
+                        <button className="btn btn-ghost mr-1.5" onClick={() => saveVinculo(v.id, { activo: !v.activo })}>
+                          {v.activo ? "Dar de baja" : "Reactivar"}
+                        </button>
+                        <button
+                          className="btn btn-ghost"
+                          onClick={() => eliminarRegistro(`/api/vinculos/${v.id}`, `el vínculo "${v.persona?.nombre} — ${v.proyecto?.nombre}"`)}
+                        >
+                          Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {maestrosSubTab === "mensualidades" && (
+        <div className="panel">
+          <h3 className="font-serif text-base text-steel mb-1">Mensualidades</h3>
+          <p className="text-sm text-muted mb-3.5">Una mensualidad es el registro mensual donde una persona debe aportar la evidencia de un vínculo. Normalmente se generan solas en lote; aquí solo hace falta lanzarlo.</p>
+
+          {personalClienteId && (
+            <div className="mb-5">
               <MiniForm
                 label="Nuevo ejercicio fiscal"
                 fields={[
@@ -426,7 +597,7 @@ export default function InternoPage() {
                 ]}
                 onSubmit={(v) => addEjercicio({ ...v, clienteId: personalClienteId })} buttonLabel="Añadir ejercicio"
               />
-              <div>
+              <div className="mt-3">
                 <div className="text-xs uppercase tracking-wide text-muted mb-2">Ejercicios de este cliente</div>
                 {ejercicios.filter((ej: any) => String(ej.clienteId) === personalClienteId).length === 0 && (
                   <div className="text-muted text-sm mb-2">Sin ejercicios creados todavía.</div>
@@ -447,150 +618,9 @@ export default function InternoPage() {
                   </div>
                 ))}
               </div>
-
-              <div className="border-t border-line pt-5">
-                <div className="text-xs uppercase tracking-wide text-muted mb-2">Personas</div>
-                <select
-                  className="field mb-2.5 max-w-xs"
-                  value={seleccionPersonaId}
-                  onChange={(e) => setSeleccionPersonaId(e.target.value)}
-                >
-                  <option value="">Todas</option>
-                  {personasDelCliente.map((p: any) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
-                </select>
-                <div className="overflow-x-auto mb-5">
-                <table className="table-review">
-                  <thead>
-                    <tr>
-                      <th>Nombre</th><th>ID de usuario</th><th>Puesto</th><th>Titulación</th>
-                      <th>F. Incorporación</th><th>F. Alta Bonif.</th><th>F. Baja Bonif.</th><th>Estado</th><th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {personasCliente.length === 0 && (
-                      <tr><td colSpan={9} className="text-center text-muted py-4">Sin personas que coincidan.</td></tr>
-                    )}
-                    {personasCliente.map((p: any) => editing?.type === "persona" && editing.id === p.id ? (
-                      <EditRowPersona key={p.id} p={p} onSave={(d) => savePersona(p.id, d)} onCancel={() => setEditing(null)} />
-                    ) : (
-                      <tr key={p.id}>
-                        <td><Link href={`/interno/personas/${p.id}`} className="underline text-accent">{p.nombre}</Link></td>
-                        <td className="font-mono text-xs">{p.idUsuario || "—"}</td>
-                        <td>{p.puesto || "—"}</td>
-                        <td>{p.titulacion || "—"}</td>
-                        <td>{p.fechaIncorporacion || "—"}</td>
-                        <td>{p.fechaAltaBonificacion || "—"}</td>
-                        <td>{p.fechaBajaBonificacion || "—"}</td>
-                        <td>{p.estado === "Baja" ? <span className="badge badge-bad">Baja</span> : <span className="badge badge-ok">Activo</span>}</td>
-                        <td className="whitespace-nowrap">
-                          <button className="btn btn-ghost mr-1.5" onClick={() => setEditing({ type: "persona", id: p.id })}>Editar</button>
-                          <button className="btn btn-ghost mr-1.5" onClick={() => savePersona(p.id, { estado: p.estado === "Baja" ? "Activo" : "Baja" })}>
-                            {p.estado === "Baja" ? "Reactivar" : "Dar de baja"}
-                          </button>
-                          <button className="btn btn-ghost" onClick={() => eliminarRegistro(`/api/personas/${p.id}`, `la persona "${p.nombre}"`)}>Eliminar</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                </div>
-
-                <div className="text-xs uppercase tracking-wide text-muted mb-2">Proyectos</div>
-                <select
-                  className="field mb-2.5 max-w-xs"
-                  value={seleccionProyectoId}
-                  onChange={(e) => setSeleccionProyectoId(e.target.value)}
-                >
-                  <option value="">Todos</option>
-                  {proyectosDelCliente.map((p: any) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
-                </select>
-                <div className="overflow-x-auto mb-5">
-                <table className="table-review">
-                  <thead>
-                    <tr>
-                      <th>Nombre</th><th>Código</th><th>Descripción breve</th><th>Descripción técnica</th>
-                      <th>Tecnologías</th><th>F. Inicio</th><th>Estado</th><th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {proyectosCliente.length === 0 && (
-                      <tr><td colSpan={8} className="text-center text-muted py-4">Sin proyectos que coincidan.</td></tr>
-                    )}
-                    {proyectosCliente.map((p: any) => editing?.type === "proyecto" && editing.id === p.id ? (
-                      <EditRowProyecto key={p.id} p={p} onSave={(d) => saveProyecto(p.id, d)} onCancel={() => setEditing(null)} />
-                    ) : (
-                      <tr key={p.id}>
-                        <td>{p.nombre}</td>
-                        <td className="font-mono text-xs">{p.codigo || "—"}</td>
-                        <td>{p.descripcionBreve || "—"}</td>
-                        <td>{p.descripcionTecnica || "—"}</td>
-                        <td>{p.tecnologias || "—"}</td>
-                        <td>{p.fechaInicio || "—"}</td>
-                        <td>{p.estado === "Finalizado" ? <span className="badge badge-pend">Finalizado</span> : <span className="badge badge-ok">Activo</span>}</td>
-                        <td className="whitespace-nowrap">
-                          <button className="btn btn-ghost mr-1.5" onClick={() => setEditing({ type: "proyecto", id: p.id })}>Editar</button>
-                          <button className="btn btn-ghost mr-1.5" onClick={() => saveProyecto(p.id, { estado: p.estado === "Finalizado" ? "Activo" : "Finalizado" })}>
-                            {p.estado === "Finalizado" ? "Reactivar" : "Finalizar"}
-                          </button>
-                          <button className="btn btn-ghost" onClick={() => eliminarRegistro(`/api/proyectos/${p.id}`, `el proyecto "${p.nombre}"`)}>Eliminar</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                </div>
-
-                <div className="text-xs uppercase tracking-wide text-muted mb-2">Vínculos persona-proyecto</div>
-                <select
-                  className="field mb-2.5 max-w-xs"
-                  value={seleccionVinculoId}
-                  onChange={(e) => setSeleccionVinculoId(e.target.value)}
-                >
-                  <option value="">Todos</option>
-                  {vinculosDelCliente.map((v: any) => (
-                    <option key={v.id} value={v.id}>{v.persona?.nombre} — {v.proyecto?.nombre}</option>
-                  ))}
-                </select>
-                <div className="overflow-x-auto">
-                <table className="table-review">
-                  <thead><tr><th>Persona — Proyecto</th><th>Dedicación</th><th>Estado</th><th></th></tr></thead>
-                  <tbody>
-                    {vinculosCliente.length === 0 && (
-                      <tr><td colSpan={4} className="text-center text-muted py-4">Sin vínculos que coincidan.</td></tr>
-                    )}
-                    {vinculosCliente.map((v: any) => editing?.type === "vinculo" && editing.id === v.id ? (
-                      <EditRowVinculo key={v.id} v={v} onSave={(d) => saveVinculo(v.id, d)} onCancel={() => setEditing(null)} />
-                    ) : (
-                      <tr key={v.id}>
-                        <td>{v.persona?.nombre} — {v.proyecto?.nombre}</td><td>{v.dedicacion}%</td>
-                        <td>{v.activo ? <span className="badge badge-ok">Activo</span> : <span className="badge badge-bad">Inactivo</span>}</td>
-                        <td className="whitespace-nowrap">
-                          <button className="btn btn-ghost mr-1.5" onClick={() => setEditing({ type: "vinculo", id: v.id })}>Editar</button>
-                          <button className="btn btn-ghost mr-1.5" onClick={() => saveVinculo(v.id, { activo: !v.activo })}>
-                            {v.activo ? "Dar de baja" : "Reactivar"}
-                          </button>
-                          <button
-                            className="btn btn-ghost"
-                            onClick={() => eliminarRegistro(`/api/vinculos/${v.id}`, `el vínculo "${v.persona?.nombre} — ${v.proyecto?.nombre}"`)}
-                          >
-                            Eliminar
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                </div>
-              </div>
             </div>
           )}
-        </div>
-      )}
 
-      {maestrosSubTab === "mensualidades" && (
-        <div className="panel">
-          <h3 className="font-serif text-base text-steel mb-1">Mensualidades</h3>
-          <p className="text-sm text-muted mb-3.5">Una mensualidad es el registro mensual donde una persona debe aportar la evidencia de un vínculo. Normalmente se generan solas en lote; aquí solo hace falta lanzarlo.</p>
           <div className="bg-paper border border-line rounded-md p-3.5 flex items-end gap-3 flex-wrap">
             <div className="flex-[2] min-w-[220px] text-sm">
               <b className="text-ink">Generar mensualidades en lote</b>
